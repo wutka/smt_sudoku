@@ -23,6 +23,7 @@ I don't know if you need both z3 and msat for this, I think at least
 msat.
 
 Finally, run it with:
+
     python smt_sudoku.py
 
 Assuming you have downloaded the top95.txt file, it will start
