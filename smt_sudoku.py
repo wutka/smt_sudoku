@@ -1,6 +1,7 @@
 from pysmt.shortcuts import Symbol, And, Plus, Equals, GE, LT, Int, AllDifferent, get_model
 from pysmt.shortcuts import Solver
 from pysmt.typing import INT
+import sys
 
 # This program works with an array of 81 values
 # whose indices are arranged like this:
@@ -20,6 +21,8 @@ from pysmt.typing import INT
 
 def block_at(n):
     """Return the 9 indices of the block that starts with n"""
+# The numbers being added here are the indices of the upper-left
+# box in the above diagram
     return [n, n+1, n+2, n+9, n+10, n+11, n+18, n+19, n+20]
 
 def row_at(n):
@@ -28,6 +31,8 @@ def row_at(n):
 
 def col_at(n):
     """Return the 9 indices of the column that starts with n"""
+#   Each index in a column is 9 higher than the previous one
+#   So column 4 is 4,13,22,31,40 ...
     return [i+n for i in range(0, 81, 9)]
 
 def digit_check(sud, i, sud_str):
@@ -39,20 +44,26 @@ def digit_check(sud, i, sud_str):
 
 def solve_sudoku(sud_str):
     # create 81 symbols named s0..s80
+    # these represent the digits that the SMT solver is trying to solve
     sud = [Symbol("s"+str(i), INT) for i in range(0, 81)]
 
     # For each block, create an AllDifferent call for each member of
     # the block and And them all together
+    # the values here for block_num are the upper-left indices of
+    # each 3x3 box (according to the diagram at the top of this file)
     blocks = And([AllDifferent([sud[i] for i in block_at(block_num)])
         for block_num in [0, 3, 6, 27, 30, 33, 54, 57, 60]])
 
     # For each row, create an AllDifferent call for each item in the
     # row and And them all together
+    # The first index of each row is 9 higher than the first index
+    # of the previous row 0..9..18..27..
     rows = And([AllDifferent([sud[i] for i in row_at(row_num)])
         for row_num in range(0, 81, 9)])
 
     # For each column, create an AllDifferent call for each item in the
     # column and And them all together
+    # The first index of each column is just 0,1,2,3,4.. and then
     cols = And([AllDifferent([sud[i] for i in col_at(col_num)])
         for col_num in range(0, 9)])
 
@@ -76,5 +87,8 @@ def solve_sudoku(sud_str):
             print("No solution found")
 
 # Load the puzzle set (http://norvig.com/top95.txt)
-for line in open("top95.txt", "r"):
+filename = "top95.txt"
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
+for line in open(filename, "r"):
     solve_sudoku(line.rstrip())
